@@ -1,9 +1,15 @@
 package student;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import game.EscapeState;
 import game.ExplorationState;
+import game.NodeStatus;
 
 public class Explorer {
+
+    private Set<Long> nodesSeen = new HashSet<>();
 
     /**
      * Explore the cavern, trying to find the orb in as few steps as possible.
@@ -36,7 +42,35 @@ public class Explorer {
      * @param state the information available at the current state
      */
     public void explore(ExplorationState state) {
-        //TODO:
+        if (state.getDistanceToTarget() == 0) {
+            return;
+        }
+
+        this.nodesSeen.add(state.getCurrentLocation());
+
+        // Store current position so we can return to it if we reach a
+        // 'dead-end'; this is important because we can only move to adjacent
+        // nodes
+        long originalPosition = state.getCurrentLocation();
+
+        for (NodeStatus n : state.getNeighbours()) {
+            if (this.nodesSeen.contains(n.getId())) {
+                continue;
+            }
+
+            state.moveTo(n.getId());
+            this.explore(state);
+
+            // Before returning to our original position,
+            // check if we have reached the orb
+            if (state.getDistanceToTarget() == 0) {
+                return;
+            }
+
+            // Move back to our original position because we can only move to
+            // adjacent nodes
+            state.moveTo(originalPosition);
+        }
     }
 
     /**
