@@ -1,10 +1,18 @@
 package student;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import game.Edge;
 import game.EscapeState;
 import game.ExplorationState;
+import game.MinHeap;
+import game.Node;
 import game.NodeStatus;
 
 public class Explorer {
@@ -97,6 +105,59 @@ public class Explorer {
      * @param state the information available at the current state
      */
     public void escape(EscapeState state) {
-        //TODO: Escape from the cavern before time runs out
+        MinHeap<Node> frontier = new MinHeap<>();
+
+        Map<Node, Node> prevNode = new HashMap<>();
+
+        /** Contains an entry for each node in the Settled and Frontier sets. */
+        Map<Long, Integer> pathWeights = new HashMap<>();
+        Node originalPosition = state.getCurrentNode();
+
+        pathWeights.put(originalPosition.getId(), 0);
+        frontier.add(originalPosition, 0);
+
+        while (!frontier.isEmpty()) {
+            Node f = frontier.poll();
+
+            if (f.equals(state.getExit())) {
+                break;
+            }
+
+            int nWeight = pathWeights.get(f.getId());
+
+            for (Edge e : f.getExits()) {
+                Node w = e.getOther(f);
+                int weightThroughN = nWeight + e.length();
+                Integer existingWeight = pathWeights.get(w.getId());
+
+                if (existingWeight == null) {
+                    pathWeights.put(w.getId(), weightThroughN);
+                    frontier.add(w, weightThroughN);
+                } else if (weightThroughN < existingWeight) {
+                    pathWeights.put(w.getId(), weightThroughN);
+                    frontier.changePriority(w, weightThroughN);
+                }
+
+                if (existingWeight == null || weightThroughN < existingWeight) {
+                    prevNode.put(w, f);
+                }
+            }
+        }
+
+        List<Node> visitOrder = new ArrayList<>();
+        Node u = state.getExit();
+
+        while (u != null) {
+            visitOrder.add(u);
+            u = prevNode.get(u);
+        }
+
+        Collections.reverse(visitOrder);
+        // Remove original position as we don't need to move to it
+        visitOrder.remove(0);
+
+        for (Node n : visitOrder) {
+            state.moveTo(n);
+        }
     }
 }
