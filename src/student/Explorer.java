@@ -1,7 +1,9 @@
 package student;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,8 +18,6 @@ import game.Node;
 import game.NodeStatus;
 
 public class Explorer {
-
-    private Set<Long> nodesSeen = new HashSet<>();
 
     /**
      * Explore the cavern, trying to find the orb in as few steps as possible.
@@ -50,34 +50,37 @@ public class Explorer {
      * @param state the information available at the current state
      */
     public void explore(ExplorationState state) {
-        if (state.getDistanceToTarget() == 0) {
-            return;
-        }
-
-        this.nodesSeen.add(state.getCurrentLocation());
-
-        // Store current position so we can return to it if we reach a
-        // 'dead-end'; this is important because we can only move to adjacent
-        // nodes
         long originalPosition = state.getCurrentLocation();
+        Set<Long> nodesSeen = new HashSet<>();
+        Deque<Long> lastVisited = new ArrayDeque<>();
 
-        for (NodeStatus n : state.getNeighbours()) {
-            if (this.nodesSeen.contains(n.getId())) {
-                continue;
+        while (state.getDistanceToTarget() != 0) {
+            Long closestNeighbour = null;
+            Integer closestNeighbourDistance = null;
+
+            nodesSeen.add(state.getCurrentLocation());
+            lastVisited.add(state.getCurrentLocation());
+
+            for (NodeStatus n : state.getNeighbours()) {
+                if ((closestNeighbourDistance == null || n.getDistanceToTarget() < closestNeighbourDistance) && !nodesSeen.contains(n.getId())) {
+                    closestNeighbour = n.getId();
+                    closestNeighbourDistance = n.getDistanceToTarget();
+                }
             }
 
-            state.moveTo(n.getId());
-            this.explore(state);
+            if (closestNeighbour != null) {
+              state.moveTo(closestNeighbour);
+            } else {
+              // Discard current node
+              lastVisited.removeLast();
+              // Backtrack
+              Long last = lastVisited.pollLast();
+              state.moveTo(last);
+            }
 
-            // Before returning to our original position,
-            // check if we have reached the orb
             if (state.getDistanceToTarget() == 0) {
                 return;
             }
-
-            // Move back to our original position because we can only move to
-            // adjacent nodes
-            state.moveTo(originalPosition);
         }
     }
 
