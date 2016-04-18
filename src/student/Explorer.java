@@ -158,6 +158,9 @@ public class Explorer {
 
         for (Node n : visitOrder) {
             state.moveTo(n);
+            if (n.getTile().getGold() > 0) {
+              state.pickUpGold();
+            }
         }
     }
 }
