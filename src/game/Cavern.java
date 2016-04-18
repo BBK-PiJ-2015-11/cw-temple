@@ -398,7 +398,7 @@ public class Cavern {
      */
     int minPathLengthToTarget(Node start) {
 
-        InternalMinHeap<Node> frontier = new InternalMinHeap<>();
+        MinHeap<Node> frontier = new MinHeap<>();
 
         /** Contains an entry for each node in the Settled and Frontier sets. */
         Map<Long, Integer> pathWeights = new HashMap<>();
