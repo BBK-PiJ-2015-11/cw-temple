@@ -24,3 +24,18 @@ The [assignment][], in brief, is defined as follows:
 # Run once in GUI mode:
 
     javac student/*.java && java main.GUImain
+
+## Approach
+
+The explore phase uses a breath-first search to find the Orb.
+
+The escape phases uses an implementation of Dijkstra's shortest path algorithm,
+using a priority queue.
+
+Both implementations are iterative.
+
+## Limitations
+
+The escape phase merely looks for the shortest path to the exit, picking gold
+up along the way, but does not alter the route in an effort to pick up
+additional gold.
